@@ -70,6 +70,7 @@ var renderTextLayer = (function renderTextLayerClosure() {
     };
 
     task._textDivs.push(textDiv);
+    geom.str = geom.str.replace(/\u200B/g, '');
     if (isAllWhitespace(geom.str)) {
       textDivProperties.isWhitespace = true;
       task._textDivProperties.set(textDiv, textDivProperties);

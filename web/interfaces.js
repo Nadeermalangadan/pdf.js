@@ -135,7 +135,7 @@ class IPDFTextLayerFactory {
    * @returns {TextLayerBuilder}
    */
   createTextLayerBuilder(textLayerDiv, pageIndex, viewport,
-                         enhanceTextSelection = false) {}
+                         enhanceTextSelection = true) {}
 }
 
 /**

@@ -930,7 +930,7 @@ class BaseViewer {
    * @returns {TextLayerBuilder}
    */
   createTextLayerBuilder(textLayerDiv, pageIndex, viewport,
-                         enhanceTextSelection = false) {
+                         enhanceTextSelection = true) {
     return new TextLayerBuilder({
       textLayerDiv,
       eventBus: this.eventBus,

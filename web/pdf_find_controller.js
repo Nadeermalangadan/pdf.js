@@ -24,9 +24,10 @@ const FindState = {
   PENDING: 3,
 };
 
-const FIND_TIMEOUT = 250; // ms
+const FIND_TIMEOUT = 10000; // ms
 
 const CHARACTERS_TO_NORMALIZE = {
+  '\u200B': '', // removed break charector
   '\u2018': '\'', // Left single quotation mark
   '\u2019': '\'', // Right single quotation mark
   '\u201A': '\'', // Single low-9 quotation mark
@@ -155,7 +156,7 @@ class PDFFindController {
     this._pageContents = []; // Stores the text for each page.
     this._matchesCountTotal = 0;
     this._pagesToSearch = null;
-    this._pendingFindMatches = Object.create(null);
+    this._pendingpageIndexes = Object.create(null);
     this._resumePageIdx = null;
     this._dirtyMatch = false;
     clearTimeout(this._findTimeout);
@@ -375,6 +376,10 @@ class PDFFindController {
     }
   }
 
+  _clearFindTimeout(){
+    clearTimeout(this.findTimeout);
+  }
+
   _updatePage(index) {
     if (this._selected.pageIdx === index) {
       // If the page is selected, scroll the page into view, which triggers
@@ -412,6 +417,9 @@ class PDFFindController {
         this._updatePage(i);
 
         // Start finding the matches as soon as the text is extracted.
+        if(!this._pendingFindMatches){
+          this._pendingFindMatches = [];
+        }
         if (!(i in this._pendingFindMatches)) {
           this._pendingFindMatches[i] = true;
           this._extractTextPromises[i].then((pageIdx) => {
@@ -541,6 +549,7 @@ class PDFFindController {
 
   _onFindBarClose(evt) {
     const pdfDocument = this._pdfDocument;
+    this._clearFindTimeout();
     // Since searching is asynchronous, ensure that the removal of highlighted
     // matches (from the UI) is async too such that the 'updatetextlayermatches'
     // events will always be dispatched in the expected order.

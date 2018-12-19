@@ -340,7 +340,7 @@ class ChromePreferences extends BasePreferences {
         let defaultManagedPrefs = Object.assign({
           enableHandToolOnLoad: false,
           disableTextLayer: false,
-          enhanceTextSelection: false,
+          enhanceTextSelection: true,
         }, this.defaults);
 
         chrome.storage.managed.get(defaultManagedPrefs, function(items) {

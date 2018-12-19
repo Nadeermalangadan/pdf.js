@@ -34,7 +34,7 @@ import { Metadata } from './metadata';
 import { PDFDataTransportStream } from './transport_stream';
 import { WebGLContext } from './webgl';
 
-const DEFAULT_RANGE_CHUNK_SIZE = 65536; // 2^16 = 65536
+const DEFAULT_RANGE_CHUNK_SIZE = 524288; // 512 KB
 
 let isWorkerDisabled = false;
 let fallbackWorkerSrc;
@@ -306,7 +306,7 @@ function getDocument(src) {
     params.disableStream = false;
   }
   if (typeof params.disableAutoFetch !== 'boolean') {
-    params.disableAutoFetch = false;
+    params.disableAutoFetch = true;
   }
   if (typeof params.disableCreateObjectURL !== 'boolean') {
     params.disableCreateObjectURL =

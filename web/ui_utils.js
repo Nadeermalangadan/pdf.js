@@ -80,10 +80,10 @@ let NullL10n = {
 function getOutputScale(ctx) {
   let devicePixelRatio = window.devicePixelRatio || 1;
   let backingStoreRatio = ctx.webkitBackingStorePixelRatio ||
-                          ctx.mozBackingStorePixelRatio ||
-                          ctx.msBackingStorePixelRatio ||
-                          ctx.oBackingStorePixelRatio ||
-                          ctx.backingStorePixelRatio || 1;
+    ctx.mozBackingStorePixelRatio ||
+    ctx.msBackingStorePixelRatio ||
+    ctx.oBackingStorePixelRatio ||
+    ctx.backingStorePixelRatio || 1;
   let pixelRatio = devicePixelRatio / backingStoreRatio;
   return {
     sx: pixelRatio,
@@ -112,9 +112,9 @@ function scrollIntoView(element, spot, skipOverflowHiddenElements = false) {
   let offsetY = element.offsetTop + element.clientTop;
   let offsetX = element.offsetLeft + element.clientLeft;
   while ((parent.clientHeight === parent.scrollHeight &&
-          parent.clientWidth === parent.scrollWidth) ||
-         (skipOverflowHiddenElements &&
-          getComputedStyle(parent).overflow === 'hidden')) {
+    parent.clientWidth === parent.scrollWidth) ||
+    (skipOverflowHiddenElements &&
+      getComputedStyle(parent).overflow === 'hidden')) {
     if (parent.dataset._scaleY) {
       offsetY /= parent.dataset._scaleY;
       offsetX /= parent.dataset._scaleX;
@@ -143,7 +143,7 @@ function scrollIntoView(element, spot, skipOverflowHiddenElements = false) {
  * PDF.js friendly one: with scroll debounce and scroll direction.
  */
 function watchScroll(viewAreaElement, callback) {
-  let debounceScroll = function(evt) {
+  let debounceScroll = function (evt) {
     if (rAF) {
       return;
     }
@@ -412,7 +412,7 @@ function backtrackBeforeAllVisibleElements(index, views, top) {
  * @returns {Object} `{ first, last, views: [{ id, x, y, view, percent }] }`
  */
 function getVisibleElements(scrollEl, views, sortByVisibility = false,
-                            horizontal = false) {
+  horizontal = false) {
   let top = scrollEl.scrollTop, bottom = top + scrollEl.clientHeight;
   let left = scrollEl.scrollLeft, right = left + scrollEl.clientWidth;
 
@@ -445,7 +445,7 @@ function getVisibleElements(scrollEl, views, sortByVisibility = false,
   let percentVisible;
   let firstVisibleElementInd = views.length === 0 ? 0 :
     binarySearchFirstItem(views, horizontal ? isElementRightAfterViewLeft :
-                                              isElementBottomAfterViewTop);
+      isElementBottomAfterViewTop);
 
   if (views.length > 0 && !horizontal) {
     // In wrapped scrolling (or vertical scrolling with spreads), with some page
@@ -490,7 +490,7 @@ function getVisibleElements(scrollEl, views, sortByVisibility = false,
     }
 
     if (viewBottom <= top || currentHeight >= bottom ||
-        viewRight <= left || currentWidth >= right) {
+      viewRight <= left || currentWidth >= right) {
       continue;
     }
 
@@ -514,7 +514,7 @@ function getVisibleElements(scrollEl, views, sortByVisibility = false,
   let last = visible[visible.length - 1];
 
   if (sortByVisibility) {
-    visible.sort(function(a, b) {
+    visible.sort(function (a, b) {
       let pc = a.percent - b.percent;
       if (Math.abs(pc) > 0.001) {
         return -pc;
@@ -553,7 +553,7 @@ function getPDFFileNameFromURL(url, defaultFilename = 'document.pdf') {
   }
   if (isDataSchema(url)) {
     console.warn('getPDFFileNameFromURL: ' +
-                 'ignoring "data:" URL for performance reasons.');
+      'ignoring "data:" URL for performance reasons.');
     return defaultFilename;
   }
   const reURI = /^(?:(?:[^:]+:)?\/\/[^\/]+)?([^?#]*)(\?[^#]*)?(#.*)?$/;
@@ -562,8 +562,8 @@ function getPDFFileNameFromURL(url, defaultFilename = 'document.pdf') {
   const reFilename = /[^\/?#=]+\.pdf\b(?!.*\.pdf\b)/i;
   let splitURI = reURI.exec(url);
   let suggestedFilename = reFilename.exec(splitURI[1]) ||
-                          reFilename.exec(splitURI[2]) ||
-                          reFilename.exec(splitURI[3]);
+    reFilename.exec(splitURI[2]) ||
+    reFilename.exec(splitURI[3]);
   if (suggestedFilename) {
     suggestedFilename = suggestedFilename[0];
     if (suggestedFilename.includes('%')) {
@@ -633,9 +633,9 @@ const WaitOnType = {
  * @returns {Promise} A promise that is resolved with a {WaitOnType} value.
  */
 function waitOnEventOrTimeout({ target, name, delay = 0, }) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     if (typeof target !== 'object' || !(name && typeof name === 'string') ||
-        !(Number.isInteger(delay) && delay >= 0)) {
+      !(Number.isInteger(delay) && delay >= 0)) {
       throw new Error('waitOnEventOrTimeout - invalid parameters.');
     }
 
@@ -669,7 +669,7 @@ function waitOnEventOrTimeout({ target, name, delay = 0, }) {
  */
 let animationStarted = new Promise(function (resolve) {
   if ((typeof PDFJSDev !== 'undefined' && PDFJSDev.test('LIB')) &&
-      typeof window === 'undefined') {
+    typeof window === 'undefined') {
     // Prevent "ReferenceError: window is not defined" errors when running the
     // unit-tests in Node.js/Travis.
     setTimeout(resolve, 20);
@@ -718,6 +718,23 @@ class EventBus {
     }
     // Passing all arguments after the eventName to the listeners.
     const args = Array.prototype.slice.call(arguments, 1);
+
+    if (eventListeners.length && (eventName === 'nextpage' || eventName === 'previouspage' || eventName === 'rotatecw' || eventName === 'rotateccw' || eventName === 'find')) {
+      eventListeners = [eventListeners[0], eventListeners[1]]; var evtList = [];
+      for (var j = 0; j < eventListeners.length; ++j) {
+        var needToAdd = true;
+        for (var i = 0; i < evtList.length; ++i) {
+          if (evtList[i] === eventListeners[j]) {
+            needToAdd = false;
+            break;
+          }
+        }
+        if (needToAdd) {
+          evtList.push(eventListeners[j]);
+        }
+      }
+      eventListeners = evtList;
+    }
     // Making copy of the listeners array in case if it will be modified
     // during dispatch.
     eventListeners.slice(0).forEach(function (listener) {
@@ -808,7 +825,7 @@ class ProgressBar {
     let scrollbarWidth = container.offsetWidth - viewer.offsetWidth;
     if (scrollbarWidth > 0) {
       this.bar.setAttribute('style', 'width: calc(100% - ' +
-                                     scrollbarWidth + 'px);');
+        scrollbarWidth + 'px);');
     }
   }
 

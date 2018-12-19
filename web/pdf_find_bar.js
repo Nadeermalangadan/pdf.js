@@ -208,6 +208,8 @@ class PDFFindBar {
     this.bar.classList.add('hidden');
 
     this.eventBus.dispatch('findbarclose', { source: this, });
+    $('.highlight').removeAttr('class');
+    this.eventBus.dispatch('findBarClose', { source: this });
   }
 
   toggle() {

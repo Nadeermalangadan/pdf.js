@@ -8,7 +8,7 @@
   "pdfBugEnabled": false,
   "disableRange": false,
   "disableStream": false,
-  "disableAutoFetch": false,
+  "disableAutoFetch": true,
   "disableFontFace": false,
   "textLayerMode": 1,
   "useOnlyCssZoom": false,

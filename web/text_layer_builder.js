@@ -40,7 +40,7 @@ const MATCH_SCROLL_OFFSET_LEFT = -400;
  */
 class TextLayerBuilder {
   constructor({ textLayerDiv, eventBus, pageIndex, viewport,
-                findController = null, enhanceTextSelection = false, }) {
+                findController = null, enhanceTextSelection = true, }) {
     this.textLayerDiv = textLayerDiv;
     this.eventBus = eventBus || getGlobalEventBus();
     this.textContent = null;
@@ -138,6 +138,9 @@ class TextLayerBuilder {
     let i = 0;
     let iIndex = 0;
     let textContentItemsStr = this.textContentItemsStr;
+    for(let i = 0; i<textContentItemsStr.length;++i ){
+      textContentItemsStr[i] = textContentItemsStr[i].replace(/\u200B/g, '');
+    }
     let end = textContentItemsStr.length - 1;
     let queryLen = (this.findController === null ?
                     0 : this.findController.state.query.length);
@@ -456,7 +459,7 @@ class DefaultTextLayerFactory {
    * @returns {TextLayerBuilder}
    */
   createTextLayerBuilder(textLayerDiv, pageIndex, viewport,
-                         enhanceTextSelection = false) {
+                         enhanceTextSelection = true) {
     return new TextLayerBuilder({
       textLayerDiv,
       pageIndex,
