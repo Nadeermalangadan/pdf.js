@@ -15,10 +15,10 @@
 /* globals PDFBug, Stats */
 
 import {
-  animationStarted, DEFAULT_SCALE_VALUE, getPDFFileNameFromURL, isValidRotation,
-  MAX_SCALE, MIN_SCALE, noContextMenuHandler, normalizeWheelEventDelta,
-  parseQueryString, PresentationModeState, ProgressBar, RendererType,
-  TextLayerMode
+  animationStarted, DEFAULT_SCALE_VALUE, getGlobalEventBus,
+  getPDFFileNameFromURL, isValidRotation, MAX_SCALE, MIN_SCALE,
+  noContextMenuHandler, normalizeWheelEventDelta, parseQueryString,
+  PresentationModeState, ProgressBar, RendererType, TextLayerMode
 } from './ui_utils';
 import {
   build, createObjectURL, getDocument, getFilenameFromUrl, GlobalWorkerOptions,
@@ -30,7 +30,6 @@ import { CursorTool, PDFCursorTools } from './pdf_cursor_tools';
 import { PDFRenderingQueue, RenderingStates } from './pdf_rendering_queue';
 import { PDFSidebar, SidebarView } from './pdf_sidebar';
 import { AppOptions } from './app_options';
-import { getGlobalEventBus } from './dom_events';
 import { OverlayManager } from './overlay_manager';
 import { PasswordPrompt } from './password_prompt';
 import { PDFAttachmentViewer } from './pdf_attachment_viewer';
@@ -51,6 +50,7 @@ import { ViewHistory } from './view_history';
 const DEFAULT_SCALE_DELTA = 1.1;
 const DISABLE_AUTO_FETCH_LOADING_BAR_TIMEOUT = 5000; // ms
 const FORCE_PAGES_LOADED_TIMEOUT = 10000; // ms
+const WHEEL_ZOOM_DISABLED_TIMEOUT = 1000; // ms
 
 const DefaultExternalServices = {
   updateFindControlState(data) {},
@@ -170,21 +170,14 @@ let PDFViewerApplication = {
    * @private
    */
   async _readPreferences() {
-    // A subset of the Preferences that `AppOptions`, for compatibility reasons,
-    // is allowed to override if the `AppOptions` values matches the ones below.
-    const OVERRIDES = {
-      disableFontFace: true,
-      disableRange: true,
-      disableStream: true,
-      textLayerMode: TextLayerMode.DISABLE,
-    };
-
+    if (AppOptions.get('disablePreferences') === true) {
+      // Give custom implementations of the default viewer a simpler way to
+      // opt-out of having the `Preferences` override existing `AppOptions`.
+      return;
+    }
     try {
       const prefs = await this.preferences.getAll();
-      for (let name in prefs) {
-        if ((name in OVERRIDES) && AppOptions.get(name) === OVERRIDES[name]) {
-          continue;
-        }
+      for (const name in prefs) {
         AppOptions.set(name, prefs[name]);
       }
     } catch (reason) { }
@@ -869,9 +862,6 @@ let PDFViewerApplication = {
 
       firstPagePromise.then(() => {
         this.eventBus.dispatch('documentloaded', { source: this, });
-        // TODO: Remove the following event, i.e. 'documentload',
-        //       once the mozilla-central tests have been updated.
-        this.eventBus.dispatch('documentload', { source: this, });
       });
     });
 
@@ -1345,6 +1335,7 @@ let PDFViewerApplication = {
       eventBus.dispatch('afterprint', { source: window, });
     };
 
+    window.addEventListener('visibilitychange', webViewerVisibilityChange);
     window.addEventListener('wheel', webViewerWheel);
     window.addEventListener('click', webViewerClick);
     window.addEventListener('keydown', webViewerKeyDown);
@@ -1405,6 +1396,7 @@ let PDFViewerApplication = {
   unbindWindowEvents() {
     let { _boundEvents, } = this;
 
+    window.removeEventListener('visibilitychange', webViewerVisibilityChange);
     window.removeEventListener('wheel', webViewerWheel);
     window.removeEventListener('click', webViewerClick);
     window.removeEventListener('keydown', webViewerKeyDown);
@@ -1909,7 +1901,11 @@ function webViewerZoomOut() {
 }
 function webViewerPageNumberChanged(evt) {
   let pdfViewer = PDFViewerApplication.pdfViewer;
-  pdfViewer.currentPageLabel = evt.value;
+  // Note that for `<input type="number">` HTML elements, an empty string will
+  // be returned for non-number inputs; hence we simply do nothing in that case.
+  if (evt.value !== '') {
+    pdfViewer.currentPageLabel = evt.value;
+  }
 
   // Ensure that the page number input displays the correct value, even if the
   // value entered by the user was invalid (e.g. a floating point number).
@@ -2013,7 +2009,23 @@ function webViewerPageChanging(evt) {
   }
 }
 
-let zoomDisabled = false, zoomDisabledTimeout;
+function webViewerVisibilityChange(evt) {
+  if (document.visibilityState === 'visible') {
+    // Ignore mouse wheel zooming during tab switches (bug 1503412).
+    setZoomDisabledTimeout();
+  }
+}
+
+let zoomDisabledTimeout = null;
+function setZoomDisabledTimeout() {
+  if (zoomDisabledTimeout) {
+    clearTimeout(zoomDisabledTimeout);
+  }
+  zoomDisabledTimeout = setTimeout(function() {
+    zoomDisabledTimeout = null;
+  }, WHEEL_ZOOM_DISABLED_TIMEOUT);
+}
+
 function webViewerWheel(evt) {
   let pdfViewer = PDFViewerApplication.pdfViewer;
   if (pdfViewer.isInPresentationMode) {
@@ -2029,7 +2041,7 @@ function webViewerWheel(evt) {
     // Only zoom the pages, not the entire viewer.
     evt.preventDefault();
     // NOTE: this check must be placed *after* preventDefault.
-    if (zoomDisabled) {
+    if (zoomDisabledTimeout || document.visibilityState === 'hidden') {
       return;
     }
 
@@ -2058,11 +2070,7 @@ function webViewerWheel(evt) {
       pdfViewer.container.scrollTop += dy * scaleCorrectionFactor;
     }
   } else {
-    zoomDisabled = true;
-    clearTimeout(zoomDisabledTimeout);
-    zoomDisabledTimeout = setTimeout(function () {
-      zoomDisabled = false;
-    }, 1000);
+    setZoomDisabledTimeout();
   }
 }
 
@@ -2304,6 +2312,10 @@ function webViewerKeyDown(evt) {
 
       case 82: // 'r'
         PDFViewerApplication.rotatePages(90);
+        break;
+
+      case 115: // F4
+        PDFViewerApplication.pdfSidebar.toggle();
         break;
     }
 
