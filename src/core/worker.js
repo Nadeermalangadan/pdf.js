@@ -322,7 +322,6 @@ var WorkerMessageHandler = {
                                fullRequest.isStreamingSupported;
         pdfManager = new NetworkPdfManager(docId, pdfStream, {
           msgHandler: handler,
-          url: source.url,
           password: source.password,
           length: fullRequest.contentLength,
           disableAutoFetch,
@@ -529,6 +528,10 @@ var WorkerMessageHandler = {
 
     handler.on('GetPageMode', function wphSetupGetPageMode(data) {
       return pdfManager.ensureCatalog('pageMode');
+    });
+
+    handler.on('getOpenActionDestination', function(data) {
+      return pdfManager.ensureCatalog('openActionDestination');
     });
 
     handler.on('GetAttachments',
