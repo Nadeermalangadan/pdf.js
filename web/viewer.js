@@ -221,5 +221,5 @@ if (document.readyState === 'interactive' ||
     document.readyState === 'complete') {
   webViewerLoad();
 } else {
-  document.addEventListener('DOMContentLoaded', webViewerLoad, true);
+  window.webViewerLoad = webViewerLoad;
 }

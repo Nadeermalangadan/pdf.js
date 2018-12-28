@@ -738,7 +738,9 @@ class EventBus {
     // Making copy of the listeners array in case if it will be modified
     // during dispatch.
     eventListeners.slice(0).forEach(function (listener) {
-      listener.apply(null, args);
+      if(listener){
+        listener.apply(null, args);
+      }
     });
     if (this._dispatchToDOM) {
       this._dispatchDOMEvent(eventName, args);

@@ -61,37 +61,63 @@ class SecondaryToolbar {
     this.toggleButton = options.toggleButton;
     this.toolbarButtonContainer = options.toolbarButtonContainer;
     this.buttons = [
-      { element: options.presentationModeButton, eventName: 'presentationmode',
-        close: true, },
+      {
+        element: options.presentationModeButton, eventName: 'presentationmode',
+        close: true,
+      },
       { element: options.openFileButton, eventName: 'openfile', close: true, },
       { element: options.printButton, eventName: 'print', close: true, },
       { element: options.downloadButton, eventName: 'download', close: true, },
       { element: options.viewBookmarkButton, eventName: null, close: true, },
-      { element: options.firstPageButton, eventName: 'firstpage',
-        close: true, },
+      {
+        element: options.firstPageButton, eventName: 'firstpage',
+        close: true,
+      },
       { element: options.lastPageButton, eventName: 'lastpage', close: true, },
-      { element: options.pageRotateCwButton, eventName: 'rotatecw',
-        close: false, },
-      { element: options.pageRotateCcwButton, eventName: 'rotateccw',
-        close: false, },
-      { element: options.cursorSelectToolButton, eventName: 'switchcursortool',
-        eventDetails: { tool: CursorTool.SELECT, }, close: true, },
-      { element: options.cursorHandToolButton, eventName: 'switchcursortool',
-        eventDetails: { tool: CursorTool.HAND, }, close: true, },
-      { element: options.scrollVerticalButton, eventName: 'switchscrollmode',
-        eventDetails: { mode: ScrollMode.VERTICAL, }, close: true, },
-      { element: options.scrollHorizontalButton, eventName: 'switchscrollmode',
-        eventDetails: { mode: ScrollMode.HORIZONTAL, }, close: true, },
-      { element: options.scrollWrappedButton, eventName: 'switchscrollmode',
-        eventDetails: { mode: ScrollMode.WRAPPED, }, close: true, },
-      { element: options.spreadNoneButton, eventName: 'switchspreadmode',
-        eventDetails: { mode: SpreadMode.NONE, }, close: true, },
-      { element: options.spreadOddButton, eventName: 'switchspreadmode',
-        eventDetails: { mode: SpreadMode.ODD, }, close: true, },
-      { element: options.spreadEvenButton, eventName: 'switchspreadmode',
-        eventDetails: { mode: SpreadMode.EVEN, }, close: true, },
-      { element: options.documentPropertiesButton,
-        eventName: 'documentproperties', close: true, },
+      {
+        element: options.pageRotateCwButton, eventName: 'rotatecw',
+        close: false,
+      },
+      {
+        element: options.pageRotateCcwButton, eventName: 'rotateccw',
+        close: false,
+      },
+      {
+        element: options.cursorSelectToolButton, eventName: 'switchcursortool',
+        eventDetails: { tool: CursorTool.SELECT, }, close: true,
+      },
+      {
+        element: options.cursorHandToolButton, eventName: 'switchcursortool',
+        eventDetails: { tool: CursorTool.HAND, }, close: true,
+      },
+      {
+        element: options.scrollVerticalButton, eventName: 'switchscrollmode',
+        eventDetails: { mode: ScrollMode.VERTICAL, }, close: true,
+      },
+      {
+        element: options.scrollHorizontalButton, eventName: 'switchscrollmode',
+        eventDetails: { mode: ScrollMode.HORIZONTAL, }, close: true,
+      },
+      {
+        element: options.scrollWrappedButton, eventName: 'switchscrollmode',
+        eventDetails: { mode: ScrollMode.WRAPPED, }, close: true,
+      },
+      {
+        element: options.spreadNoneButton, eventName: 'switchspreadmode',
+        eventDetails: { mode: SpreadMode.NONE, }, close: true,
+      },
+      {
+        element: options.spreadOddButton, eventName: 'switchspreadmode',
+        eventDetails: { mode: SpreadMode.ODD, }, close: true,
+      },
+      {
+        element: options.spreadEvenButton, eventName: 'switchspreadmode',
+        eventDetails: { mode: SpreadMode.EVEN, }, close: true,
+      },
+      {
+        element: options.documentPropertiesButton,
+        eventName: 'documentproperties', close: true,
+      },
     ];
     this.items = {
       firstPage: options.firstPageButton,
@@ -124,10 +150,10 @@ class SecondaryToolbar {
     this.eventBus.on('baseviewerinit', (evt) => {
       if (evt.source instanceof PDFSinglePageViewer) {
         this.toolbarButtonContainer.classList.add('hiddenScrollModeButtons',
-                                                  'hiddenSpreadModeButtons');
+          'hiddenSpreadModeButtons');
       } else {
         this.toolbarButtonContainer.classList.remove('hiddenScrollModeButtons',
-                                                     'hiddenSpreadModeButtons');
+          'hiddenSpreadModeButtons');
       }
     });
   }
@@ -172,24 +198,25 @@ class SecondaryToolbar {
     // All items within the secondary toolbar.
     for (let button in this.buttons) {
       let { element, eventName, close, eventDetails, } = this.buttons[button];
-
-      element.addEventListener('click', (evt) => {
-        if (eventName !== null) {
-          let details = { source: this, };
-          for (let property in eventDetails) {
-            details[property] = eventDetails[property];
+      if (element) {
+        element.addEventListener('click', (evt) => {
+          if (eventName !== null) {
+            let details = { source: this, };
+            for (let property in eventDetails) {
+              details[property] = eventDetails[property];
+            }
+            this.eventBus.dispatch(eventName, details);
           }
-          this.eventBus.dispatch(eventName, details);
-        }
-        if (close) {
-          this.close();
-        }
-      });
+          if (close) {
+            this.close();
+          }
+        });
+      }
     }
   }
 
   _bindCursorToolsListener(buttons) {
-    this.eventBus.on('cursortoolchanged', function(evt) {
+    this.eventBus.on('cursortoolchanged', function (evt) {
       buttons.cursorSelectToolButton.classList.remove('toggled');
       buttons.cursorHandToolButton.classList.remove('toggled');
 
