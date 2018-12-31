@@ -237,7 +237,9 @@ class PDFDocumentProperties {
   _updateUI(reset = false) {
     if (reset || !this.fieldData) {
       for (let id in this.fields) {
-        this.fields[id].textContent = DEFAULT_FIELD_CONTENT;
+        if(this.fields[id]){
+          this.fields[id].textContent = DEFAULT_FIELD_CONTENT;
+        }
       }
       return;
     }
